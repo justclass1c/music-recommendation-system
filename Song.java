@@ -2,27 +2,28 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Song {
-    private String title;
-    private List<String> genres;
-    private List<String> artists;
+    private String songTitle;
+    private List<String> songGenres;
+    private List<String> songArtists;
 
     public Song() {};
 
-    public Song(String title, List<String> genres, List<String> artists) {
-        this.title = title;
-        this.genres = genres;
-        this.artists = artists;
+    public Song(String songTitle, List<String> songGenres, List<String> songArtists) {
+        this.songTitle = songTitle;
+        this.songGenres = songGenres;
+        this.songArtists = songArtists;
     }
 
-    public String getTitle() {
-        return this.title;
+    public String getSongTitle() {
+        return this.songTitle;
     }
 
-    public List<String> getGenres() {
-	return this.genres;
+    public List<String> getSongGenres() {
+        return this.songGenres;
     }
 
-    public List<String> getArtists() {
-	return this.artists;
+    public List<String> getSongArtists() {
+        return this.songArtists;
     }
+
 }
