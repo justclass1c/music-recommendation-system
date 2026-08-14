@@ -1,11 +1,11 @@
 import java.util.*;
 
-
 public class MusicGraph {
-    private Map<String, Song> songCatalog = new HashMap<>(); // stores Song objects
+    private Map<String, Song> songCatalog = new HashMap<>();
     private Map<String, List<String>> genres = new HashMap<>();
     private Map<String, List<String>> artists = new HashMap<>();
-    
+
+    //load data
     public void addSong(String songTitle, List<String> songGenres, List<String> songArtists) {
         Song song = new Song(songTitle, songGenres, songArtists);
         songCatalog.put(songTitle, song);
@@ -13,7 +13,6 @@ public class MusicGraph {
         for (String genre : songGenres) {
             genres.computeIfAbsent(genre, k -> new ArrayList<>()).add(songTitle);
         }
-
         for (String artist : songArtists) {
             artists.computeIfAbsent(artist, k -> new ArrayList<>()).add(songTitle);
         }
@@ -84,8 +83,76 @@ public class MusicGraph {
         addSong("Desperado", List.of("Country Rock"), List.of("The Eagles"));
     }
 
+    // ---------- Getter（for BFSRecommender to use） ----------
+    public Map<String, Song> getSongCatalog() {
+        return songCatalog;
+    }
+
+    public Map<String, List<String>> getGenres() {
+        return genres;
+    }
+
+    public Map<String, List<String>> getArtists() {
+        return artists;
+    }
+
+    // main function (for user to interact)
     public static void main(String[] args) {
         MusicGraph graph = new MusicGraph();
         graph.loadDataSet();
+
+        // get all of the song name
+        List<String> allSongs = new ArrayList<>(graph.getSongCatalog().keySet());
+        Collections.sort(allSongs);
+
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Song List");
+        for (int i = 0; i < allSongs.size(); i++) {
+            System.out.println((i + 1) + ". " + allSongs.get(i));
+        }
+
+        System.out.print("\nPlease select the starting song number (1-" + allSongs.size() + "): ");
+        int choice;
+        try {
+            choice = scanner.nextInt();
+            scanner.nextLine();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input.");
+            scanner.close();
+            return;
+        }
+
+        if (choice < 1 || choice > allSongs.size()) {
+            System.out.println("Song number out of range.");
+            scanner.close();
+            return;
+        }
+
+        String startSong = allSongs.get(choice - 1);
+
+        System.out.print("Please insert the max hops (example 2):");
+        int maxHops;
+        try {
+            maxHops = scanner.nextInt();
+        } catch (InputMismatchException e) {
+            System.out.println("Invalid input, using default hops 2. ");
+            maxHops = 2;
+        }
+
+        // Create instance of BFSRecommender n call the method
+        BFSRecommender recommender = new BFSRecommender();
+        List<String> recommendations = recommender.recommend(graph, startSong, maxHops);
+
+        System.out.println("\nList recommend (base on \"" + startSong + "\", max hops " + maxHops + ")");
+        if (recommendations.isEmpty()) {
+            System.out.println("didnt found recommend song");
+        } else {
+            for (int i = 0; i < recommendations.size(); i++) {
+                System.out.println((i + 1) + ". " + recommendations.get(i));
+            }
+        }
+
+        scanner.close();
     }
 }
