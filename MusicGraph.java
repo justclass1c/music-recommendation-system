@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class MusicGraph {
-    private Map<String, Song> songCatalog = new HashMap<>();
+    private Map<String, Song> songCatalog = new HashMap<>(); // stores Song objects
     private Map<String, List<String>> genres = new HashMap<>();
     private Map<String, List<String>> artists = new HashMap<>();
 
@@ -130,11 +130,13 @@ public class MusicGraph {
         }
 
         String startSong = allSongs.get(choice - 1);
+        System.out.println("Currently playing song: " + startSong);
 
         System.out.print("Please insert the max hops (example 2):");
         int maxHops;
         try {
             maxHops = scanner.nextInt();
+            maxHops = 2 * maxHops;
         } catch (InputMismatchException e) {
             System.out.println("Invalid input, using default hops 2. ");
             maxHops = 2;
