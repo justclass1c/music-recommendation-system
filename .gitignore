@@ -1,0 +1,8 @@
+# Compiled Java class files - build output, never commit these
+*.class
+
+# Common IDE / OS noise
+.vscode/
+.idea/
+nbproject/private/
+.DS_Store
