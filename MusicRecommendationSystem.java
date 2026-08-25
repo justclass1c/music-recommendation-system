@@ -21,22 +21,20 @@ public class MusicRecommendationSystem {
         System.out.println();
         System.out.println(DOUBLE_LINE);
         System.out.println("            MUSIC RECOMMENDATION SYSTEM");
-        System.out.println("             Graph Traversal using BFS");
         System.out.println(DOUBLE_LINE);
         System.out.println("  Loaded " + graph.getSongCatalog().size() + " songs, " + graph.getGenres().size() + " genres, " + graph.getArtists().size() + " artists.");
 
         boolean running = true;
         while (running) {
             showMainMenu();
-            int choice = readInt("  Select an option (0-6): ", 0, 6);
+            int choice = readInt("  Select an option (0-5): ", 0, 5);
 
             switch (choice) {
-                case 1 -> viewAllSongs();
-                case 2 -> viewSongDetails();
-                case 3 -> browseByGenre();
-                case 4 -> browseByArtist();
-                case 5 -> viewMusicGraph();
-                case 6 -> getRecommendations();
+                case 1 -> viewSongs();
+                case 2 -> browseByGenre();
+                case 3 -> browseByArtist();
+                case 4 -> viewMusicGraph();
+                case 5 -> getRecommendations();
                 case 0 -> running = false;
             }
         }
@@ -52,52 +50,55 @@ public class MusicRecommendationSystem {
         System.out.println(LINE);
         System.out.println("  MAIN MENU");
         System.out.println(LINE);
-        System.out.println("  1. View All Songs");
-        System.out.println("  2. View Song Details");
-        System.out.println("  3. Browse Songs by Genre");
-        System.out.println("  4. Browse Songs by Artist");
-        System.out.println("  5. View Music Graph (Adjacency List)");
-        System.out.println("  6. Get Song Recommendations (BFS)");
+        System.out.println("  1. View Songs");
+        System.out.println("  2. Browse Songs by Genre");
+        System.out.println("  3. Browse Songs by Artist");
+        System.out.println("  4. View Music Graph");
+        System.out.println("  5. Next Song Queue Recommendation ");
         System.out.println("  0. Exit");
         System.out.println(LINE);
     }
 
-    // 1.View All Songs
+    // 1.View Songs
 
-    private void viewAllSongs() {
+    private void viewSongs() {
+        printHeader("VIEW SONGS");
         List<String> songs = sortedKeys(graph.getSongCatalog().keySet());
-        printHeader("ALL SONGS IN THE CATALOG (" + songs.size() + ")");
         printNumberedInColumns(songs);
-        pause();
-    }
 
-    // 2.View Song Details
+        while (true) {
+            System.out.println();
+            int choice = readSelectionWithList(
+                    "  Select a song to inspect (1-" + songs.size() + ", 0 to go back, L to list again): ",
+                    0, songs.size());
 
-    private void viewSongDetails() {
-        printHeader("VIEW SONG DETAILS");
-        String title = pickSong("  Select a song to inspect");
-        if (title == null) {
-            return;
+            if (choice == LIST_AGAIN) {
+                System.out.println();
+                printNumberedInColumns(songs);
+                continue;
+            }
+            if (choice == 0) {
+                return;
+            }
+
+            Song song = graph.getSongCatalog().get(songs.get(choice - 1));
+            System.out.println();
+            System.out.println("  Title   : " + song.getSongTitle());
+            System.out.println("  Genres  : " + String.join(", ", song.getSongGenres()));
+            System.out.println("  Artists : " + String.join(", ", song.getSongArtists()));
+            System.out.println();
+            System.out.println("  Degree (number of edges from this song): " + (song.getSongGenres().size() + song.getSongArtists().size()));
         }
-
-        Song song = graph.getSongCatalog().get(title);
-        System.out.println();
-        System.out.println("  Title   : " + song.getSongTitle());
-        System.out.println("  Genres  : " + String.join(", ", song.getSongGenres()));
-        System.out.println("  Artists : " + String.join(", ", song.getSongArtists()));
-        System.out.println();
-        System.out.println("  Degree (number of edges from this song): " + (song.getSongGenres().size() + song.getSongArtists().size()));
-        pause();
     }
 
-    // 3.Browse by Genre
+    // 2.Browse by Genre
 
     private void browseByGenre() {
         printHeader("BROWSE SONGS BY GENRE");
         browseCategory(graph.getGenres(), "genre");
     }
 
-    // 4.Browse by Artist
+    // 3.Browse by Artist
 
     private void browseByArtist() {
         printHeader("BROWSE SONGS BY ARTIST");
@@ -108,24 +109,33 @@ public class MusicRecommendationSystem {
         List<String> keys = sortedKeys(category.keySet());
         printNumberedInColumns(keys);
 
-        System.out.println();
-        int choice = readInt("  Select a " + label + " (1-" + keys.size() + ", or 0 to go back): ", 0, keys.size());
-        if (choice == 0) {
-            return;
-        }
+        while (true) {
+            System.out.println();
+            int choice = readSelectionWithList(
+                    "  Select a " + label + " (1-" + keys.size() + ", 0 to go back, L to list again): ",
+                    0, keys.size());
 
-        String selected = keys.get(choice - 1);
-        List<String> songs = sortedKeys(category.get(selected));
+            if (choice == LIST_AGAIN) {
+                System.out.println();
+                printNumberedInColumns(keys);
+                continue;
+            }
+            if (choice == 0) {
+                return;
+            }
 
-        System.out.println();
-        System.out.println("  Songs under " + label + " \"" + selected + "\" (" + songs.size() + "):");
-        for (int i = 0; i < songs.size(); i++) {
-            System.out.println("     " + (i + 1) + ". " + songs.get(i));
+            String selected = keys.get(choice - 1);
+            List<String> songs = sortedKeys(category.get(selected));
+
+            System.out.println();
+            System.out.println("  Songs under " + label + " \"" + selected + "\" (" + songs.size() + "):");
+            for (int i = 0; i < songs.size(); i++) {
+                System.out.println("     " + (i + 1) + ". " + songs.get(i));
+            }
         }
-        pause();
     }
 
-    // 5.View Music Graph
+    // 4.View Music Graph
 
     private void viewMusicGraph() {
         printHeader("MUSIC GRAPH - ADJACENCY LIST");
@@ -234,59 +244,88 @@ public class MusicRecommendationSystem {
         System.out.println("  Vertices (V) = " + vertices + "   Edges (E) = " + edges);
     }
 
-    // 6.Recommendations (BFS)
+    // 5.Recommendations (BFS)
 
     private void getRecommendations() {
-        printHeader("GET SONG RECOMMENDATIONS");
-        String startSong = pickSong("  Select the currently playing song");
-        if (startSong == null) {
-            return;
-        }
+        printHeader("NEXT SONG TO QUEUE RECOMMENDATIONS");
+        List<String> masterSongs = sortedKeys(graph.getSongCatalog().keySet());
 
-        System.out.println();
-        System.out.println("  Currently playing: " + startSong);
-        System.out.println();
-        System.out.println("  Recommendation depth controls how far BFS travels.");
-        System.out.println("     1 = songs by the same artist or in the same genre");
-        System.out.println("     2 = also songs linked through those songs");
-        System.out.println("     (higher = more results, but less accurate)");
-        System.out.println();
+        List<String> activeList = masterSongs;
+        boolean fromRecommendations = false;
+        Integer depth = null; 
+        printNumberedInColumns(activeList);
 
-        int depth = readInt("  Enter recommendation depth (1-5): ", 1, 5);
-
-        // One recommendation level = 2 graph hops
-        int maxHops = depth * 2;
-
-        List<String> recommendations = recommender.recommend(graph, startSong, maxHops);
-
-        System.out.println();
-        System.out.println("  " + LINE);
-        System.out.println("  RECOMMENDATIONS based on \"" + startSong + "\"");
-        System.out.println("  depth " + depth + "  (= " + maxHops + " graph hops)");
-        System.out.println("  " + LINE);
-
-        if (recommendations.isEmpty()) {
-            System.out.println("  No recommendations found for this song.");
-        } else {
-            for (int i = 0; i < recommendations.size(); i++) {
-                System.out.println("     " + (i + 1) + ". " + recommendations.get(i));
-            }
+        while (true) {
             System.out.println();
-            System.out.println("  " + recommendations.size() + " songs found (closest matches listed first).");
+            String promptLabel = fromRecommendations
+                    ? "Select the next song to queue"
+                    : "Select the currently playing song";
+            String depthHint = (depth != null) ? ", D to change depth" : "";
+            int choice = readSelectionWithList(
+                    "  " + promptLabel + " (1-" + activeList.size() + ", 0 to go back, L to list again" + depthHint + "): ",
+                    0, activeList.size(), depth != null);
+
+            if (choice == CHANGE_DEPTH) {
+                System.out.println();
+                System.out.println("  Current depth: " + depth);
+                depth = readInt("  Enter new recommendation depth (1-5): ", 1, 5);
+                System.out.println("  Depth updated to " + depth + ".");
+                continue;
+            }
+            if (choice == LIST_AGAIN) {
+                System.out.println();
+                printNumberedInColumns(activeList);
+                continue;
+            }
+            if (choice == 0) {
+                return;
+            }
+
+            String startSong = activeList.get(choice - 1);
+
+            System.out.println();
+            System.out.println("  Currently playing: " + startSong);
+
+            if (depth == null) {
+                System.out.println();
+                System.out.println("  Recommendation depth controls.");
+                System.out.println("     1 = songs by the same artist or in the same genre");
+                System.out.println("     2 = also songs linked through those songs");
+                System.out.println("     (higher = more results, but less accurate)");
+                System.out.println();
+                depth = readInt("  Enter recommendation depth (1-5): ", 1, 5);
+            }
+
+            // One recommendation level = 2 graph hops
+            int maxHops = depth * 2;
+
+            List<String> recommendations = recommender.recommend(graph, startSong, maxHops);
+
+            System.out.println();
+            System.out.println("  " + LINE);
+            System.out.println("  RECOMMENDATIONS based on \"" + startSong + "\"  (depth " + depth + ")");
+            System.out.println("  " + LINE);
+
+            if (recommendations.isEmpty()) {
+                System.out.println("  No recommendations found for this song.");
+                System.out.println("  Returning to the full song list.");
+                activeList = masterSongs;
+                fromRecommendations = false;
+                System.out.println();
+                printNumberedInColumns(activeList);
+            } else {
+                for (int i = 0; i < recommendations.size(); i++) {
+                    System.out.println("     " + (i + 1) + ". " + recommendations.get(i));
+                }
+                System.out.println();
+                System.out.println("  " + recommendations.size() + " songs found (closest matches listed first).");
+                activeList = recommendations;
+                fromRecommendations = true;
+            }
         }
-        pause();
     }
 
-    private String pickSong(String prompt) {
-        List<String> songs = sortedKeys(graph.getSongCatalog().keySet());
-        printNumberedInColumns(songs);
-        System.out.println();
-
-        int choice = readInt(prompt + " (1-" + songs.size() + ", or 0 to go back): ", 0, songs.size());
-        return (choice == 0) ? null : songs.get(choice - 1);
-    }
-
-    private List<String> sortedKeys(Collection<String> keys) {
+private List<String> sortedKeys(Collection<String> keys) {
         List<String> sorted = new ArrayList<>(keys);
         sorted.sort(String.CASE_INSENSITIVE_ORDER);
         return sorted;
@@ -327,22 +366,63 @@ public class MusicRecommendationSystem {
         return scanner.nextLine().trim();
     }
 
+    private static void clearPreviousLine() {
+        System.out.print("\033[1A\033[2K\r");
+    }
+
+    private static String invalidPrompt(String basePrompt) {
+        String trimmed = basePrompt.replaceAll("[:\\s]+$", "");
+        return trimmed + " [invalid, try again]: ";
+    }
+
     private static int readInt(String prompt, int min, int max) {
+        String currentPrompt = prompt;
         while (true) {
-            String input = readLine(prompt);
+            String input = readLine(currentPrompt);
             try {
                 int value = Integer.parseInt(input);
                 if (value < min || value > max) {
-                    System.out.println("  [!] Please enter a number between " + min + " and " + max + ".");
+                    clearPreviousLine();
+                    currentPrompt = invalidPrompt(prompt);
                     continue;
                 }
                 return value;
             } catch (NumberFormatException e) {
-                if (input.isEmpty()) {
-                    System.out.println("  [!] Nothing entered. Please type a number.");
-                } else {
-                    System.out.println("  [!] \"" + input + "\" is not a valid number. Please try again.");
+                clearPreviousLine();
+                currentPrompt = invalidPrompt(prompt);
+            }
+        }
+    }
+
+    private static final int LIST_AGAIN = -1;
+
+    private static final int CHANGE_DEPTH = -2;
+
+    private static int readSelectionWithList(String prompt, int min, int max) {
+        return readSelectionWithList(prompt, min, max, false);
+    }
+
+    private static int readSelectionWithList(String prompt, int min, int max, boolean allowDepthChange) {
+        String currentPrompt = prompt;
+        while (true) {
+            String input = readLine(currentPrompt);
+            if (input.equalsIgnoreCase("l")) {
+                return LIST_AGAIN;
+            }
+            if (allowDepthChange && input.equalsIgnoreCase("d")) {
+                return CHANGE_DEPTH;
+            }
+            try {
+                int value = Integer.parseInt(input);
+                if (value < min || value > max) {
+                    clearPreviousLine();
+                    currentPrompt = invalidPrompt(prompt);
+                    continue;
                 }
+                return value;
+            } catch (NumberFormatException e) {
+                clearPreviousLine();
+                currentPrompt = invalidPrompt(prompt);
             }
         }
     }
