@@ -6,12 +6,6 @@ public class MusicGraph {
     private Map<String, List<String>> genres = new HashMap<>();
     private Map<String, List<String>> artists = new HashMap<>();
 
-    public void addSong() {
-        System.out.print("Enter a song title: ");
-
-    }
-
-    //load data
     public void loadSong(String songTitle, List<String> songGenres, List<String> songArtists) {
         Song song = new Song(songTitle, songGenres, songArtists);
         songCatalog.put(songTitle, song);

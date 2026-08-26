@@ -8,6 +8,7 @@ public class MusicRecommendationSystem {
 
     private final MusicGraph graph = new MusicGraph();
     private final BFSRecommender recommender = new BFSRecommender();
+    private String loggedInUser;
 
     public static void main(String[] args) {
         new MusicRecommendationSystem().run();
@@ -16,6 +17,7 @@ public class MusicRecommendationSystem {
     // Main Menu
 
     private void run() {
+        loggedInUser = UserAuthentication.authenticate();
         graph.loadDataSet();
 
         System.out.println();
@@ -27,7 +29,9 @@ public class MusicRecommendationSystem {
         boolean running = true;
         while (running) {
             showMainMenu();
-            int choice = readInt("  Select an option (0-7): ", 0, 7);
+            boolean isAdmin = loggedInUser.equals("admin");
+            int maxOption = isAdmin ? 7 : 5;
+            int choice = readInt("  Select an option (0-" + maxOption + "): ", 0, maxOption);
 
             switch (choice) {
                 case 1 -> viewSongs();
@@ -35,30 +39,37 @@ public class MusicRecommendationSystem {
                 case 3 -> browseByArtist();
                 case 4 -> viewMusicGraph();
                 case 5 -> getRecommendations();
-                case 6 -> addSong();
-                case 7 -> removeSong();
+                case 6 -> {
+                    if (isAdmin) addSong();
+                }
+                case 7 -> {
+                    if (isAdmin) removeSong();
+                }
                 case 0 -> running = false;
             }
         }
 
         System.out.println();
-        System.out.println("  Thank you for using the Music Recommendation System!");
+        System.out.println("  Thank you, " + loggedInUser + ", for using the Music Recommendation System!");
         System.out.println(DOUBLE_LINE);
         scanner.close();
     }
 
     private void showMainMenu() {
+        boolean isAdmin = loggedInUser.equals("admin");
         System.out.println();
         System.out.println(LINE);
-        System.out.println("  MAIN MENU");
+        System.out.println("  MAIN MENU  (Logged in as: " + loggedInUser + ")");
         System.out.println(LINE);
         System.out.println("  1. View Songs");
         System.out.println("  2. Browse Songs by Genre");
         System.out.println("  3. Browse Songs by Artist");
         System.out.println("  4. View Music Graph");
-        System.out.println("  5. Next Song Queue Recommendation ");
-        System.out.println("  6. Add Song");
-        System.out.println("  7. Remove Song");
+        System.out.println("  5. Next Song Queue Recommendation");
+        if (isAdmin) {
+            System.out.println("  6. Add Song");
+            System.out.println("  7. Remove Song");
+        }
         System.out.println("  0. Exit");
         System.out.println(LINE);
     }
