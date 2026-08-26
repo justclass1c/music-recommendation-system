@@ -27,7 +27,7 @@ public class MusicRecommendationSystem {
         boolean running = true;
         while (running) {
             showMainMenu();
-            int choice = readInt("  Select an option (0-5): ", 0, 5);
+            int choice = readInt("  Select an option (0-7): ", 0, 7);
 
             switch (choice) {
                 case 1 -> viewSongs();
@@ -35,6 +35,8 @@ public class MusicRecommendationSystem {
                 case 3 -> browseByArtist();
                 case 4 -> viewMusicGraph();
                 case 5 -> getRecommendations();
+                case 6 -> addSong();
+                case 7 -> removeSong();
                 case 0 -> running = false;
             }
         }
@@ -55,6 +57,8 @@ public class MusicRecommendationSystem {
         System.out.println("  3. Browse Songs by Artist");
         System.out.println("  4. View Music Graph");
         System.out.println("  5. Next Song Queue Recommendation ");
+        System.out.println("  6. Add Song");
+        System.out.println("  7. Remove Song");
         System.out.println("  0. Exit");
         System.out.println(LINE);
     }
@@ -325,7 +329,102 @@ public class MusicRecommendationSystem {
         }
     }
 
-private List<String> sortedKeys(Collection<String> keys) {
+    // 6.Add Song
+
+    private void addSong() {
+        printHeader("ADD SONG");
+
+        String title = readLine("  Song title: ").trim();
+        if (title.isEmpty()) {
+            System.out.println("  Cancelled. Title cannot be empty.");
+            return;
+        }
+
+        String genresInput = readLine("  Genres (comma-separated): ").trim();
+        List<String> genres = parseList(genresInput);
+        if (genres.isEmpty()) {
+            System.out.println("  Cancelled. At least one genre is required.");
+            return;
+        }
+
+        String artistsInput = readLine("  Artists (comma-separated): ").trim();
+        List<String> artists = parseList(artistsInput);
+        if (artists.isEmpty()) {
+            System.out.println("  Cancelled. At least one artist is required.");
+            return;
+        }
+
+        int degree = genres.size() + artists.size();
+        System.out.println();
+        System.out.println("  Preview:");
+        System.out.println("    Title   : " + title);
+        System.out.println("    Genres  : " + String.join(", ", genres));
+        System.out.println("    Artists : " + String.join(", ", artists));
+        System.out.println("    Degree  : " + degree);
+
+        String confirm = readLine("\n  Add this song? (Y/N): ").trim();
+        if (!confirm.equalsIgnoreCase("y")) {
+            System.out.println("  Cancelled.");
+            return;
+        }
+
+        if (graph.addSong(title, genres, artists)) {
+            System.out.println();
+            System.out.println("  \"" + title + "\" added successfully.");
+        }
+    }
+
+    // 7.Remove Song
+
+    private void removeSong() {
+        printHeader("REMOVE SONG");
+        List<String> songs = sortedKeys(graph.getSongCatalog().keySet());
+
+        if (songs.isEmpty()) {
+            System.out.println("  No songs to remove.");
+            return;
+        }
+
+        printNumberedInColumns(songs);
+        System.out.println();
+
+        int choice = readSelectionWithList(
+                "  Select a song to remove (1-" + songs.size() + ", 0 to cancel, L to list again): ",
+                0, songs.size());
+
+        if (choice == LIST_AGAIN || choice == 0) {
+            return;
+        }
+
+        String title = songs.get(choice - 1);
+        Song song = graph.getSongCatalog().get(title);
+
+        System.out.println();
+        System.out.println("  Title   : " + song.getSongTitle());
+        System.out.println("  Genres  : " + String.join(", ", song.getSongGenres()));
+        System.out.println("  Artists : " + String.join(", ", song.getSongArtists()));
+        System.out.println("  Degree  : " + (song.getSongGenres().size() + song.getSongArtists().size()));
+
+        String confirm = readLine("\n  Remove this song? (Y/N): ").trim();
+        if (!confirm.equalsIgnoreCase("y")) {
+            System.out.println("  Cancelled.");
+            return;
+        }
+
+        if (graph.removeSong(title)) {
+            System.out.println();
+            System.out.println("  \"" + title + "\" removed successfully.");
+        }
+    }
+
+    private List<String> parseList(String input) {
+        return Arrays.stream(input.split(","))
+                     .map(String::trim)
+                     .filter(s -> !s.isEmpty())
+                     .toList();
+    }
+
+    private List<String> sortedKeys(Collection<String> keys) {
         List<String> sorted = new ArrayList<>(keys);
         sorted.sort(String.CASE_INSENSITIVE_ORDER);
         return sorted;

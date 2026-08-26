@@ -1,12 +1,18 @@
 import java.util.*;
+import java.io.*;
 
 public class MusicGraph {
     private Map<String, Song> songCatalog = new HashMap<>(); // stores Song objects
     private Map<String, List<String>> genres = new HashMap<>();
     private Map<String, List<String>> artists = new HashMap<>();
 
+    public void addSong() {
+        System.out.print("Enter a song title: ");
+
+    }
+
     //load data
-    public void addSong(String songTitle, List<String> songGenres, List<String> songArtists) {
+    public void loadSong(String songTitle, List<String> songGenres, List<String> songArtists) {
         Song song = new Song(songTitle, songGenres, songArtists);
         songCatalog.put(songTitle, song);
 
@@ -19,68 +25,126 @@ public class MusicGraph {
     }
 
     public void loadDataSet() {
-        addSong("dusk", List.of("R&B", "Soul"), List.of("Sonny Zero"));
-        addSong("forgot the time", List.of("R&B", "Soul"), List.of("Sonny Zero"));
-        addSong("Sabotage", List.of("R&B", "Soul"), List.of("Sonny Zero"));
-        addSong("oxygen", List.of("R&B"), List.of("Sonny Zero"));
-        addSong("nosebleed", List.of("R&B", "Soul"), List.of("Sonny Zero"));
+        String fileName = "songs.txt";
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
-        addSong("baby", List.of("Pop Rap"), List.of("Justin Bieber"));
-        addSong("Love yourself", List.of("Pop"), List.of("Justin Bieber"));
-        addSong("beauty and a beat", List.of("Electropop"), List.of("Justin Bieber"));
-        addSong("holy", List.of("Pop"), List.of("Justin Bieber"));
-        addSong("ghost", List.of("Pop", "Rock"), List.of("Justin Bieber"));
+                String[] parts = line.split("\\|");
+                if (parts.length != 3) {
+                    System.out.println("Skipping invalid line: " + line);
+                    continue;
+                }
 
-        addSong("Billie jean", List.of("R&B"), List.of("Michael Jackson"));
-        addSong("Beat it", List.of("Rock"), List.of("Michael Jackson"));
-        addSong("Smooth criminal", List.of("Pop"), List.of("Michael Jackson"));
-        addSong("thriller", List.of("Disco-funk"), List.of("Michael Jackson"));
-        addSong("Man in the mirror", List.of("Pop"), List.of("Michael Jackson"));
+                String title = parts[0].trim();
+                List<String> genres = Arrays.stream(parts[1].split(",")).map(String::trim).toList();
+                List<String> artists = Arrays.stream(parts[2].split(",")).map(String::trim).toList();
 
-        addSong("whyyy", List.of("Indie Pop"), List.of("bixby"));
-        addSong("Take Time", List.of("Indie Pop"), List.of("Joon", "bixby"));
-        addSong("distance", List.of("Alternative Pop"), List.of("bixby"));
-        addSong("easy", List.of("Alternative Pop", "Indie Pop"), List.of("bixby"));
-        addSong("endlessly", List.of("Alternative Pop", "Indie Pop"), List.of("bixby"));
-        addSong("Clarity", List.of("Indie Pop", "Electronic"), List.of("Tom Frane"));
-        addSong("pretty", List.of("Classical"), List.of("JVKE"));
-        addSong("golden hour", List.of("Classical"), List.of("JVKE"));
-        addSong("A Thousand Years", List.of("Classical"), List.of("John Michael Howell", "JVKE", "ZVC"));
-        addSong("by my side", List.of("Pop"), List.of("Joon", "bixby"));
+                loadSong(title, genres, artists);
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Error: " + fileName + " not found.");
+        } catch (IOException e) {
+            System.out.println("Error reading " + fileName + ": " + e.getMessage());
+        }
+    }
 
-        addSong("Never Gonna Give You Up", List.of("Electronic", "Electro-Pop"), List.of("Rick Astley"));
+    // ---------- Add / Remove ----------
 
-        addSong("Goosebumps", List.of("Trap", "Psychedelic Rap"), List.of("Travis Scott"));
-        addSong("Sicko Mode", List.of("Trap", "Psychedelic Rap"), List.of("Travis Scott"));
-        addSong("Fe!n", List.of("Trap", "Rage Rap"), List.of("Travis Scott"));
+    public boolean addSong(String songTitle, List<String> songGenres, List<String> songArtists) {
+        if (songTitle == null || songTitle.isBlank()) {
+            System.out.println("  Error: Song title cannot be empty.");
+            return false;
+        }
+        if (songCatalog.containsKey(songTitle)) {
+            System.out.println("  Error: A song titled \"" + songTitle + "\" already exists.");
+            return false;
+        }
+        if (songGenres == null || songGenres.isEmpty()) {
+            System.out.println("  Error: At least one genre is required.");
+            return false;
+        }
+        if (songArtists == null || songArtists.isEmpty()) {
+            System.out.println("  Error: At least one artist is required.");
+            return false;
+        }
 
-        addSong("Sweater Weather", List.of("Indie"), List.of("The neighbourhood"));
-        addSong("Daddy Issues", List.of("Indie"), List.of("The neighbourhood"));
-        addSong("Softcore", List.of("Indie"), List.of("The neighbourhood"));
+        Song song = new Song(songTitle, songGenres, songArtists);
+        songCatalog.put(songTitle, song);
 
-        addSong("Doja", List.of("UK Drill"), List.of("Central Cee"));
-        addSong("Sprinter", List.of("UK Drill"), List.of("Central Cee"));
-        addSong("Band4Band", List.of("UK Drill"), List.of("Central Cee"));
+        for (String genre : songGenres) {
+            genres.computeIfAbsent(genre, k -> new ArrayList<>()).add(songTitle);
+        }
+        for (String artist : songArtists) {
+            artists.computeIfAbsent(artist, k -> new ArrayList<>()).add(songTitle);
+        }
 
-        addSong("Dakiti", List.of("Latin Trap"), List.of("Bad Bunny"));
-        addSong("Titi Me Pregunto", List.of("Latin Trap"), List.of("Bad Bunny"));
-        addSong("Mia", List.of("Latin Trap"), List.of("Bad Bunny"));
+        saveDataSet();
+        reloadFromDisk();
+        return true;
+    }
 
-        addSong("Water", List.of("Afrobeats"), List.of("Tyla"));
-        addSong("Truth or Dare", List.of("Afrobeats"), List.of("Tyla"));
-        addSong("Jump", List.of("Afrobeats"), List.of("Tyla"));
+    public boolean removeSong(String songTitle) {
+        if (!songCatalog.containsKey(songTitle)) {
+            System.out.println("  Error: Song \"" + songTitle + "\" not found.");
+            return false;
+        }
 
-        addSong("telepatia", List.of("Neo-Soul"), List.of("Kali Uchis"));
-        addSong("moonlight", List.of("Neo-Soul"), List.of("Kali Uchis"));
-        addSong("Never be yours", List.of("Neo-Soul"), List.of("Kali Uchis"));
+        Song song = songCatalog.get(songTitle);
 
-        addSong("Back In Black", List.of("Heavy Metal"), List.of("AC/DC"));
-        addSong("Highway to Hell", List.of("Heavy Metal"), List.of("AC/DC"));
-        addSong("Thunderstruck", List.of("Heavy Metal"), List.of("AC/DC"));
+        for (String genre : song.getSongGenres()) {
+            List<String> list = genres.get(genre);
+            if (list != null) {
+                list.remove(songTitle);
+                if (list.isEmpty()) {
+                    genres.remove(genre);
+                }
+            }
+        }
+        for (String artist : song.getSongArtists()) {
+            List<String> list = artists.get(artist);
+            if (list != null) {
+                list.remove(songTitle);
+                if (list.isEmpty()) {
+                    artists.remove(artist);
+                }
+            }
+        }
 
-        addSong("Hotel California", List.of("Country Rock"), List.of("The Eagles"));
-        addSong("Take it Easy", List.of("Country Rock"), List.of("The Eagles"));
-        addSong("Desperado", List.of("Country Rock"), List.of("The Eagles"));
+        songCatalog.remove(songTitle);
+        saveDataSet();
+        reloadFromDisk();
+        return true;
+    }
+
+    // ---------- Persistence ----------
+
+    private void saveDataSet() {
+        String fileName = "songs.txt";
+        List<String> titles = new ArrayList<>(songCatalog.keySet());
+        titles.sort(String.CASE_INSENSITIVE_ORDER);
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
+            for (String title : titles) {
+                Song song = songCatalog.get(title);
+                String line = title + "|"
+                        + String.join(",", song.getSongGenres()) + "|"
+                        + String.join(",", song.getSongArtists());
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            System.out.println("  Error saving data: " + e.getMessage());
+        }
+    }
+
+    private void reloadFromDisk() {
+        songCatalog.clear();
+        genres.clear();
+        artists.clear();
+        loadDataSet();
     }
 
     // ---------- Getter（for BFSRecommender to use） ----------
